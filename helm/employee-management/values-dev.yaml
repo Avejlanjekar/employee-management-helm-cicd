@@ -1,15 +1,22 @@
+
 global:
   environment: dev
   imageTag: latest
 
 frontend:
   replicaCount: 1
+  image:
+    repository: avejlanjekar45/employee-management-frontend
 
 backend:
   replicaCount: 1
+  image:
+    repository: avejlanjekar45/employee-management-backend
 
 database:
   replicaCount: 1
+  image:
+    repository: avejlanjekar45/employee-management-database
 
 ingress:
   enabled: true

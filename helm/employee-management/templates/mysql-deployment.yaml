@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: {{ .Values.database.containerName }}
-          image: "{{ .Values.database.image.repository }}-{{ .Values.global.environment }}:{{ .Values.global.imageTag }}"
+          image: "{{ .Values.database.image.repository }}-{{ .Values.global.environment }}:{{ .Values.database.image.tag }}"
           ports:
             - containerPort: {{ .Values.database.containerPort }}
           env:

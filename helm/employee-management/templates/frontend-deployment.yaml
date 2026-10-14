@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: {{ .Values.frontend.containerName }}
-          image: "{{ .Values.frontend.image.repository }}-{{ .Values.global.environment }}:{{ .Values.global.imageTag }}"
+          image: "{{ .Values.frontend.image.repository }}-{{ .Values.global.environment }}:{{ .Values.frontend.image.tag }}"
           ports:
             - containerPort: {{ .Values.frontend.containerPort }}
 
