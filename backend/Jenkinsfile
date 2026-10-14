@@ -5,30 +5,17 @@ pipeline{
     environment{
 
         AWS_CREDENTIALS= 'aws-ecr-credentials'
-
         BUILD_CONTEXT='./backend'
-
         BACKEND_IMAGE_DEV= 'avejlanjekar45/employee-management-backend-dev'
         BACKEND_IMAGE_QA= 'avejlanjekar45/employee-management-backend-qa'
         BACKEND_IMAGE_UAT='avejlanjekar45/employee-management-backend-uat'
         BACKEND_IMAGE_PROD='avejlanjekar45/employee-management-backend-prod'
-
         REGISTRY_URL= 'https://registry.hub.docker.com'
-
         DEV_DH_CREDENTIALS= 'dockerhub-credentials'
         QA_DH_CREDENTIALS= 'dockerhub-credentials'
         UAT_DH_CREDENTIALS= 'dockerhub-credentials'
         PROD_DH_CREDENTIALS= 'dockerhub-credentials'
-
-        CLUSTER_CREDENTIALS= 'eks-kubeconfig'
-
         AWS_REGION = 'ap-south-1'
-        EKS_CLUSTER = 'employee-management-eks'
-
-        DEV_NS= 'employee-dev'
-        QA_NS= 'employee-qa'
-        UAT_NS= 'employee-uat'
-        PROD_NS= 'employee-prod'
     }
 
     parameters{
@@ -132,6 +119,9 @@ def buildAndPushImage(String BACKEND_IMAGE, String DH_CREDENTIALS, String Buildc
 }
 
 def promoteImage(String sourceImage, String targetImage, String source_DH_Credentials, String target_DH_Credentials){
+    if (!params.IMAGE_TAG?.trim()) {
+        error('IMAGE_TAG is required for image promotion.')
+    }
     docker.withRegistry("${env.REGISTRY_URL}","${source_DH_Credentials}"){
         docker.image("${sourceImage}:${params.IMAGE_TAG}").pull()
     }
