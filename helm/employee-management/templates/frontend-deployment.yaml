@@ -1,0 +1,21 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-deployment
+spec:
+  replicas: {{ .Values.frontend.replicaCount }}
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+        - name: {{ .Values.frontend.containerName }}
+          image: "{{ .Values.frontend.image.repository }}-{{ .Values.global.environment }}:{{ .Values.global.imageTag }}"
+          ports:
+            - containerPort: {{ .Values.frontend.containerPort }}
+
