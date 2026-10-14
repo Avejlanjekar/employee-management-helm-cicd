@@ -60,26 +60,6 @@ pipeline{
             }
         }
 
-        
-        stage("Dev- Deploy to eks"){
-            when{
-                expression{
-                    params.Environment == "dev"
-                }
-            }
-
-            steps{
-                script{
-                    withCredentials([
-                        [$class: 'AmazonWebServicesCredentialsBinding',
-                            credentialsId: "${env.AWS_CREDENTIALS}"]
-                    ]) {
-                            deployToEks("${env.DEV_NS}", "${params.Environment}")
-                    }
-                }
-            }
-        }
-
         stage("promote image DEV to QA"){
             when{
                 expression{
@@ -90,20 +70,6 @@ pipeline{
                 script{
 
                     promoteImage("${env.BACKEND_IMAGE_DEV}","${env.BACKEND_IMAGE_QA}","${env.DEV_DH_CREDENTIALS}","${env.QA_DH_CREDENTIALS}")
-                }
-            }
-        }
-
-        stage("QA- Deploy to eks"){
-            when{
-                expression{
-                    params.Environment == "qa"
-                }
-            }
-
-            steps{
-                script{
-                    deployToEks("${env.QA_NS}","${params.Environment}")
                 }
             }
         }
@@ -119,20 +85,6 @@ pipeline{
 
                     promoteImage("${env.BACKEND_IMAGE_QA}","${env.BACKEND_IMAGE_UAT}", "${env.QA_DH_CREDENTIALS}","${env.UAT_DH_CREDENTIALS}")
 
-                }
-            }
-        }
-
-        stage("UAT- Deploy to eks"){
-            when{
-                expression{
-                    params.Environment == "uat"
-                }
-            }
-
-            steps{
-                script{
-                    deployToEks("${env.UAT_NS}","${params.Environment}")
                 }
             }
         }
@@ -163,20 +115,6 @@ pipeline{
                 }
             }
         }
-
-        stage("PROD - Deploy to eks"){
-            when{
-                expression{
-                    params.Environment == "prod"
-                }
-            }
-
-            steps{
-                script{
-                    deployToEks("${env.PROD_NS}","${params.Environment}")
-                }
-            }
-        }
     }
     post{
         always{
@@ -203,21 +141,4 @@ def promoteImage(String sourceImage, String targetImage, String source_DH_Creden
     docker.withRegistry("${env.REGISTRY_URL}","${target_DH_Credentials}"){
         docker.image("${targetImage}:${params.IMAGE_TAG}").push()
     }
-}
-
-def deployToEks(String namespace, String environment){
-    sh "aws eks update-kubeconfig --region ${env.AWS_REGION} --name ${env.EKS_CLUSTER}-${environment}"
-    sh 'kubectl get nodes'
-    
-    if(params.Environment == "dev"){
-        sh "echo deploying to ${namespace} namespace..."
-        sh "sed -i -e 's/{{ENV}}/${environment}/g' -e 's/{{COMMITID}}/${env.GIT_COMMIT}/g' kube/backend-deployment.yml "
-    }else{
-        sh "echo deploying to ${namespace} namespace..."
-        sh "sed -i -e 's/{{ENV}}/${environment}/g' -e 's/{{COMMITID}}/${params.IMAGE_TAG}/g' kube/backend-deployment.yml "
-    } 
-
-    sh "kubectl apply -f kube/backend-deployment.yml -n ${namespace}"
-    sh "kubectl apply -f kube/backend-service.yml -n ${namespace}"
-    
 }

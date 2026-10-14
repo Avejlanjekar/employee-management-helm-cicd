@@ -5,30 +5,17 @@ pipeline{
     environment{
 
         AWS_CREDENTIALS= 'aws-ecr-credentials'
-
         BUILD_CONTEXT='./frontend'
-
         FRONTEND_IMAGE_DEV= 'avejlanjekar45/employee-management-frontend-dev'
         FRONTEND_IMAGE_QA= 'avejlanjekar45/employee-management-frontend-qa'
         FRONTEND_IMAGE_UAT= 'avejlanjekar45/employee-management-frontend-uat'
         FRONTEND_IMAGE_PROD='avejlanjekar45/employee-management-frontend-prod'
-
         REGISTRY_URL= 'https://registry.hub.docker.com'
-
         DEV_DH_CREDENTIALS= 'dockerhub-credentials'
         QA_DH_CREDENTIALS= 'dockerhub-credentials'
         UAT_DH_CREDENTIALS= 'dockerhub-credentials'
         PROD_DH_CREDENTIALS= 'dockerhub-credentials'
-
-        CLUSTER_CREDENTIALS= 'eks-kubeconfig'
-
         AWS_REGION = 'ap-south-1'
-        EKS_CLUSTER = 'employee-management-eks'
-
-        DEV_NS= 'employee-dev'
-        QA_NS= 'employee-qa'
-        UAT_NS= 'employee-uat'
-        PROD_NS= 'employee-prod'
     }
 
     parameters{
@@ -60,24 +47,6 @@ pipeline{
             }
         }
 
-        stage("Dev - Deploy to eks"){
-            when {
-                expression{
-                    params.Environment == "dev"
-                }
-            }
-            steps{
-                script{
-                    withCredentials([
-                        [$class: 'AmazonWebServicesCredentialsBinding',
-                            credentialsId: "${env.AWS_CREDENTIALS}"]
-                    ]) {
-                            deployToEks("${env.DEV_NS}", "${params.Environment}")
-                    }
-                }
-            }
-        }
-
         stage("promote image DEV to QA"){
             when{
                 expression{
@@ -91,19 +60,6 @@ pipeline{
             }
         }
 
-        stage("QA - Deploy to eks"){
-            when{
-                expression{
-                    params.Environment == "qa"
-                }
-            }
-            steps{
-                script{
-                    deployToEks("${env.QA_NS}","${params.Environment}")
-                }
-            }
-        }
-
         stage("promote image QA to UAT"){
             when {
                 expression{
@@ -113,19 +69,6 @@ pipeline{
             steps{
                 script{
                     promoteImage("${env.FRONTEND_IMAGE_QA}","${env.FRONTEND_IMAGE_UAT}","${env.QA_DH_CREDENTIALS}","${env.UAT_DH_CREDENTIALS}")
-                }
-            }
-        }
-
-        stage("UAT - Deploy to eks"){
-            when {
-                expression{
-                    params.Environment == "uat"
-                }
-            }
-            steps{
-                script{
-                    deployToEks("${env.UAT_NS}","${params.Environment}")
                 }
             }
         }
@@ -151,19 +94,6 @@ pipeline{
             steps{
                 script{
                     promoteImage("${env.FRONTEND_IMAGE_UAT}","${env.FRONTEND_IMAGE_PROD}","${env.UAT_DH_CREDENTIALS}","${env.PROD_DH_CREDENTIALS}")
-                }
-            }
-        }
-
-        stage("PROD - Deploy to eks"){
-            when{
-                expression{
-                    params.Environment == "prod"
-                }
-            }
-            steps{
-                script{
-                    deployToEks("${env.PROD_NS}","${params.Environment}")
                 }
             }
         }
@@ -193,22 +123,4 @@ def promoteImage(String sourceImage, String targetImage, String source_DH_Creden
     docker.withRegistry("${env.REGISTRY_URL}","${target_DH_Credentials}"){
         docker.image("${targetImage}:${params.IMAGE_TAG}").push()
     }
-}
-
-def deployToEks(String namespace, String environment){
-
-    sh "aws eks update-kubeconfig --region ${env.AWS_REGION} --name ${env.EKS_CLUSTER}-${environment}"
-    sh 'kubectl get nodes'
-
-    if(params.Environment == "dev"){
-        sh "echo deploying to ${namespace} namespace..."
-        sh "sed -i -e 's/{{ENV}}/${environment}/g' -e 's/{{COMMITID}}/${env.GIT_COMMIT}/g' kube/frontend-deployment.yml "
-    }else{
-        sh "echo deploying to ${namespace} namespace..."
-        sh "sed -i -e 's/{{ENV}}/${environment}/g' -e 's/{{COMMITID}}/${params.IMAGE_TAG}/g' kube/frontend-deployment.yml "
-    }        
-    sh "kubectl apply -f kube/frontend-deployment.yml -n ${namespace}"
-    sh "kubectl apply -f kube/frontend-service.yml -n ${namespace}"
-    sh "kubectl apply -f kube/ingress.yml -n ${namespace}"
-    
 }

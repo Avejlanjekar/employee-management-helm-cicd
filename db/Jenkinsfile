@@ -3,32 +3,18 @@ pipeline{
     agent any
 
     environment{
-
         AWS_CREDENTIALS= 'aws-ecr-credentials'
-
         BUILD_CONTEXT='./db'
-
         DATABASE_IMAGE_DEV= 'avejlanjekar45/employee-management-database-dev'
         DATABASE_IMAGE_QA= 'avejlanjekar45/employee-management-database-qa'
         DATABASE_IMAGE_UAT='avejlanjekar45/employee-management-database-uat'
         DATABASE_IMAGE_PROD='avejlanjekar45/employee-management-database-prod'
-
         REGISTRY_URL= 'https://registry.hub.docker.com'
-
         DEV_DH_CREDENTIALS= 'dockerhub-credentials'
         QA_DH_CREDENTIALS= 'dockerhub-credentials'
         UAT_DH_CREDENTIALS= 'dockerhub-credentials'
         PROD_DH_CREDENTIALS= 'dockerhub-credentials'
-
-        CLUSTER_CREDENTIALS= 'eks-kubeconfig'
-
         AWS_REGION = 'ap-south-1'
-        EKS_CLUSTER = 'employee-management-eks'
-
-        DEV_NS= 'employee-dev'
-        QA_NS= 'employee-qa'
-        UAT_NS= 'employee-uat'
-        PROD_NS= 'employee-prod'
     }
 
     parameters{
@@ -60,26 +46,6 @@ pipeline{
             }
         }
 
-        
-        stage("Dev- Deploy to eks"){
-            when{
-                expression{
-                    params.Environment == "dev"
-                }
-            }
-
-            steps{
-                script{
-                    withCredentials([
-                        [$class: 'AmazonWebServicesCredentialsBinding',
-                            credentialsId: "${env.AWS_CREDENTIALS}"]
-                    ]) {
-                            deployToEks("${env.DEV_NS}", "${params.Environment}")
-                    }
-                }
-            }
-        }
-
         stage("promote image DEV to QA"){
             when{
                 expression{
@@ -90,25 +56,6 @@ pipeline{
                 script{
 
                     promoteImage("${env.DATABASE_IMAGE_DEV}","${env.DATABASE_IMAGE_QA}","${env.DEV_DH_CREDENTIALS}","${env.QA_DH_CREDENTIALS}")
-                }
-            }
-        }
-
-        stage("QA- Deploy to eks"){
-            when{
-                expression{
-                    params.Environment == "qa"
-                }
-            }
-
-            steps{
-                script{
-                    withCredentials([
-                        [$class: 'AmazonWebServicesCredentialsBinding',
-                            credentialsId: "${env.AWS_CREDENTIALS}"]
-                    ]) {
-                            deployToEks("${env.QA_NS}", "${params.Environment}")
-                    }
                 }
             }
         }
@@ -124,25 +71,6 @@ pipeline{
 
                     promoteImage("${env.DATABASE_IMAGE_QA}","${env.DATABASE_IMAGE_UAT}", "${env.QA_DH_CREDENTIALS}","${env.UAT_DH_CREDENTIALS}")
 
-                }
-            }
-        }
-
-        stage("UAT- Deploy to eks"){
-            when{
-                expression{
-                    params.Environment == "uat"
-                }
-            }
-
-            steps{
-                script{
-                    withCredentials([
-                        [$class: 'AmazonWebServicesCredentialsBinding',
-                            credentialsId: "${env.AWS_CREDENTIALS}"]
-                    ]) {
-                            deployToEks("${env.UAT_NS}", "${params.Environment}")
-                    }
                 }
             }
         }
@@ -173,25 +101,6 @@ pipeline{
                 }
             }
         }
-
-        stage("PROD- Deploy to eks"){
-            when{
-                expression{
-                    params.Environment == "prod"
-                }
-            }
-
-            steps{
-                script{
-                    withCredentials([
-                        [$class: 'AmazonWebServicesCredentialsBinding',
-                            credentialsId: "${env.AWS_CREDENTIALS}"]
-                    ]) {
-                            deployToEks("${env.PROD_NS}", "${params.Environment}")
-                    }
-                }
-            }
-        }
     }
     post{
         always{
@@ -209,6 +118,9 @@ def buildAndPushImage(String DATABASE_IMAGE, String DH_CREDENTIALS, String Build
 }
 
 def promoteImage(String sourceImage, String targetImage, String source_DH_Credentials, String target_DH_Credentials){
+    if (!params.IMAGE_TAG?.trim()) {
+        error('IMAGE_TAG is required for image promotion.')
+    }
     docker.withRegistry("${env.REGISTRY_URL}","${source_DH_Credentials}"){
         docker.image("${sourceImage}:${params.IMAGE_TAG}").pull()
     }
@@ -218,24 +130,4 @@ def promoteImage(String sourceImage, String targetImage, String source_DH_Creden
     docker.withRegistry("${env.REGISTRY_URL}","${target_DH_Credentials}"){
         docker.image("${targetImage}:${params.IMAGE_TAG}").push()
     }
-}
-
-def deployToEks(String namespace, String environment){
-    sh "aws eks update-kubeconfig --region ${env.AWS_REGION} --name ${env.EKS_CLUSTER}-${environment}"
-    sh "kubectl create namespace ${namespace}"
-    sh 'kubectl get nodes'
-    
-    if(params.Environment == "dev"){
-        sh "echo deploying to ${namespace} namespace..."
-        sh "sed -i -e 's/{{ENV}}/${environment}/g' -e 's/{{COMMITID}}/${env.GIT_COMMIT}/g' kube/mysql-deployment.yml "
-    }else{
-        sh "echo deploying to ${namespace} namespace..."
-        sh "sed -i -e 's/{{ENV}}/${environment}/g' -e 's/{{COMMITID}}/${params.IMAGE_TAG}/g' kube/mysql-deployment.yml "
-    }  
-
-    sh "kubectl apply -f kube/configmap.yml -n ${namespace}"
-    sh "kubectl apply -f kube/db-secret.yml -n ${namespace}"
-    sh "kubectl apply -f kube/mysql-deployment.yml -n ${namespace}"
-    sh "kubectl apply -f kube/mysql-service.yml -n ${namespace}"
-    
 }
