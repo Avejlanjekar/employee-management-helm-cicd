@@ -114,6 +114,9 @@ def buildAndPushImage(String FRONTEND_IMAGE, String DH_CREDENTIALS, String Build
 }
 
 def promoteImage(String sourceImage, String targetImage, String source_DH_Credentials, String target_DH_Credentials){
+    if (!params.IMAGE_TAG?.trim()) {
+        error('IMAGE_TAG is required for image promotion.')
+    }
     docker.withRegistry("${env.REGISTRY_URL}","${source_DH_Credentials}"){
         docker.image("${sourceImage}:${params.IMAGE_TAG}").pull()
     }
