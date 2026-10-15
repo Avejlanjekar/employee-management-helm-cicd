@@ -14,4 +14,4 @@ database:
 ingress:
   enabled: true
   className: alb
-  host: employee.com
+  host: employee-uat.com

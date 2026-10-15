@@ -46,6 +46,45 @@ pipeline{
             }
         }
 
+        
+        stage('Update Dev Helm Values') {
+            when {
+                expression { params.Environment == 'dev' }
+            }
+            steps {
+                withEnv(["IMAGE_TAG=${GIT_COMMIT}"]) {
+                    sh '''
+                        yq -i '.database.image.tag = strenv(IMAGE_TAG)' helm/employee-management/values-dev.yaml
+                    '''
+                }
+            }
+        }
+
+        stage('Validate Helm Chart') {
+            when {
+                expression { params.Environment == 'dev' }
+            }
+            steps {
+                sh '''
+                    helm lint helm/employee-management -f helm/employee-management/values-dev.yaml
+                    helm template employee-management helm/employee-management -f helm/employee-management/values-dev.yaml
+                '''
+            }
+        }
+
+        stage('Commit and Push Helm Values') {
+            when {
+                expression { params.Environment == 'dev' }
+            }
+            steps {
+                sh '''
+                    git add helm/employee-management/values-dev.yaml
+                    git commit -m "Update database Dev image tag"
+                    git push origin main
+                '''
+            }
+        }
+
         stage("promote image DEV to QA"){
             when{
                 expression{
