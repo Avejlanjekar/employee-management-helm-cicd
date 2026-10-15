@@ -80,7 +80,7 @@ pipeline{
                 sh '''
                     git add helm/employee-management/values-dev.yaml
                     git commit -m "Update database Dev image tag"
-                    git push origin main
+                    git push origin HEAD:main
                 '''
             }
         }
