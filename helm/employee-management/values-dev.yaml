@@ -2,25 +2,21 @@
 global:
   environment: dev
   imageTag: latest
-
 frontend:
   replicaCount: 1
   image:
     repository: avejlanjekar45/employee-management-frontend
     tag: "ff90cd9314e0990ca654c04d86c5cbea12f6b227"
-
 backend:
   replicaCount: 1
   image:
     repository: avejlanjekar45/employee-management-backend
     tag: "ff9ec4865e37da4f977a5daaf1a8e2dfe6c1533f"
-
 database:
   replicaCount: 1
   image:
     repository: avejlanjekar45/employee-management-database
-    tag: "b9ecb584d01038d6ca4bc65248fdf5757d6c3fc6"
-
+    tag: "7ad0db9373ae97f0e109c2ad069054acb9b25271"
 ingress:
   enabled: true
   className: alb
