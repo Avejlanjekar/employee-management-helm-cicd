@@ -77,11 +77,16 @@ pipeline{
                 expression { params.Environment == 'dev' }
             }
             steps {
-                sh '''
-                    git add helm/employee-management/values-dev.yaml
-                    git commit -m "Update database Dev image tag"
-                    git push origin HEAD:main
-                '''
+                withCredentials([string(
+                    credentialsId: 'github-write-token',
+                    variable: 'GITHUB_TOKEN'
+                )]){
+                    sh '''
+                        git add helm/employee-management/values-dev.yaml
+                        git commit -m "Update database Dev image tag"
+                        git push origin HEAD:main
+                    '''
+                }
             }
         }
 
