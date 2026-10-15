@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: employee-management-dev
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/Avejlanjekar/employee-management-helm-cicd.git
+    targetRevision: main
+    path: helm/employee-management
+    helm:
+      valueFiles:
+        - values-dev.yaml
+  destination:
+    server: https://996623956C9DAACC20A68E4604602C0C.gr7.ap-south-1.eks.amazonaws.com
+    namespace: employee-dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
