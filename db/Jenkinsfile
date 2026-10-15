@@ -72,23 +72,28 @@ pipeline{
             }
         }
 
+        
         stage('Commit and Push Helm Values') {
             when {
-                expression { params.Environment == 'dev' }
+                expression { 
+                    params.Environment == 'dev' 
+                }
             }
             steps {
-                withCredentials([string(
-                    credentialsId: 'github-write-token',
-                    variable: 'GITHUB_TOKEN'
-                )]){
-                    sh '''
-                        git add helm/employee-management/values-dev.yaml
-                        git commit -m "Update database Dev image tag"
-                        git -c http.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GITHUB_TOKEN" | base64 -w 0)" push origin HEAD:main
-                    '''
+                sh '''
+                    git add helm/employee-management/values-dev.yaml
+                    git commit -m "Update database Dev image tag"
+                '''
+
+                withCredentials([gitUsernamePassword(
+                    credentialsId: 'github-git-credentials',
+                    gitToolName: 'Default'
+                )]) {
+                        sh 'git push origin HEAD:main'
                 }
             }
         }
+
 
         stage("promote image DEV to QA"){
             when{
