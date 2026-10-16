@@ -1,16 +1,14 @@
 global:
   environment: uat
   imageTag: latest
-
 frontend:
   replicaCount: 1
-
 backend:
   replicaCount: 1
-
 database:
   replicaCount: 1
-
+  image:
+    tag: 4e1e994c3ce6eed9dac189ed21f9ce970fda3bcb
 ingress:
   className: alb
   host: employee-uat.com
