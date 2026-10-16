@@ -4,14 +4,22 @@ global:
 
 frontend:
   replicaCount: 1
+  image:
+    repository: avejlanjekar45/employee-management-frontend
+    tag: "ff90cd9314e0990ca654c04d86c5cbea12f6b227"
 
 backend:
   replicaCount: 1
+  image:
+    repository: avejlanjekar45/employee-management-backend
+    tag: "0d794f4b9bf060951d1c687b88a195c640b9d016"
 
 database:
   replicaCount: 1
+  image:
+    repository: avejlanjekar45/employee-management-database
+    tag: "fa1ce21e0b70a20ab79bced0b7a3416876ccef77"
 
 ingress:
-  enabled: true
   className: alb
   host: employee-qa.com

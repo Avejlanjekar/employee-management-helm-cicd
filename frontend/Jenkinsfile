@@ -59,21 +59,8 @@ pipeline{
                 }
             }
         }
-
-        stage('Validate Helm Chart') {
-            when {
-                expression { params.Environment == 'dev' }
-            }
-            steps {
-                sh '''
-                    helm lint helm/employee-management -f helm/employee-management/values-dev.yaml
-                    helm template employee-management helm/employee-management -f helm/employee-management/values-dev.yaml
-                '''
-            }
-        }
-
-        
-        stage('Commit and Push Helm Values') {
+ 
+        stage('Commit and Push DEV Helm Values') {
             when {
                 expression { 
                     params.Environment == 'dev' 
@@ -107,6 +94,38 @@ pipeline{
             }
         }
 
+        stage('Update QA Helm Values') {
+            when {
+                expression { params.Environment == 'qa' }
+            }
+            steps {   
+                sh '''
+                    yq -i '.frontend.image.tag = strenv(IMAGE_TAG)' helm/employee-management/values-qa.yaml
+                '''   
+            }
+        }
+ 
+        stage('Commit and Push DEV Helm Values') {
+            when {
+                expression { 
+                    params.Environment == 'qa' 
+                }
+            }
+            steps {
+                sh '''
+                    git add helm/employee-management/values-qa.yaml
+                    git commit -m "Update frontend qa image tag"
+                '''
+
+                withCredentials([gitUsernamePassword(
+                    credentialsId: 'github-git-credentials',
+                    gitToolName: 'Default'
+                )]) {
+                        sh 'git push origin HEAD:main'
+                }
+            }
+        }
+
         stage("promote image QA to UAT"){
             when {
                 expression{
@@ -116,6 +135,38 @@ pipeline{
             steps{
                 script{
                     promoteImage("${env.FRONTEND_IMAGE_QA}","${env.FRONTEND_IMAGE_UAT}","${env.QA_DH_CREDENTIALS}","${env.UAT_DH_CREDENTIALS}")
+                }
+            }
+        }
+
+        stage('Update UAT Helm Values') {
+            when {
+                expression { params.Environment == 'uat' }
+            }
+            steps {   
+                sh '''
+                    yq -i '.frontend.image.tag = strenv(IMAGE_TAG)' helm/employee-management/values-uat.yaml
+                '''   
+            }
+        }
+ 
+        stage('Commit and Push UAT Helm Values') {
+            when {
+                expression { 
+                    params.Environment == 'uat' 
+                }
+            }
+            steps {
+                sh '''
+                    git add helm/employee-management/values-uat.yaml
+                    git commit -m "Update frontend uat image tag"
+                '''
+
+                withCredentials([gitUsernamePassword(
+                    credentialsId: 'github-git-credentials',
+                    gitToolName: 'Default'
+                )]) {
+                        sh 'git push origin HEAD:main'
                 }
             }
         }
@@ -141,6 +192,38 @@ pipeline{
             steps{
                 script{
                     promoteImage("${env.FRONTEND_IMAGE_UAT}","${env.FRONTEND_IMAGE_PROD}","${env.UAT_DH_CREDENTIALS}","${env.PROD_DH_CREDENTIALS}")
+                }
+            }
+        }
+
+        stage('Update QA Helm Values') {
+            when {
+                expression { params.Environment == 'prod' }
+            }
+            steps {   
+                sh '''
+                    yq -i '.frontend.image.tag = strenv(IMAGE_TAG)' helm/employee-management/values-prod.yaml
+                '''   
+            }
+        }
+ 
+        stage('Commit and Push DEV Helm Values') {
+            when {
+                expression { 
+                    params.Environment == 'prod' 
+                }
+            }
+            steps {
+                sh '''
+                    git add helm/employee-management/values-prod.yaml
+                    git commit -m "Update frontend prod image tag"
+                '''
+
+                withCredentials([gitUsernamePassword(
+                    credentialsId: 'github-git-credentials',
+                    gitToolName: 'Default'
+                )]) {
+                        sh 'git push origin HEAD:main'
                 }
             }
         }

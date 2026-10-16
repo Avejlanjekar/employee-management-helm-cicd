@@ -12,6 +12,5 @@ database:
   replicaCount: 1
 
 ingress:
-  enabled: true
   className: alb
   host: employee-uat.com

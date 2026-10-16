@@ -13,7 +13,7 @@ spec:
       valueFiles:
         - values-dev.yaml
   destination:
-    server: https://996623956C9DAACC20A68E4604602C0C.gr7.ap-south-1.eks.amazonaws.com
+    server: https://5464409556A49BBBB95A8D13E25F0345.gr7.ap-south-1.eks.amazonaws.com
     namespace: employee-dev
   syncPolicy:
     automated:

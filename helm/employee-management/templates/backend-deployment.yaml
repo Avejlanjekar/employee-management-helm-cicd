@@ -1,17 +1,16 @@
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: backend-deployment
+  name: {{ .Values.backend.deployment.name }}
 spec:
   replicas: {{ .Values.backend.replicaCount }}
   selector:
     matchLabels:
-      app: backend
+      app: {{ .Values.backend.labels.app }}
   template:
     metadata:
       labels:
-        app: backend
+        app: {{ .Values.backend.labels.app }}
     spec:
       containers:
         - name: {{ .Values.backend.containerName }}
@@ -19,29 +18,33 @@ spec:
           ports:
             - containerPort: {{ .Values.backend.containerPort }}
           env:
-            - name: DB_HOST
+            - name: {{ .Values.backend.config.DB_HOST}}
               valueFrom:
                 configMapKeyRef:
-                  name: employee-cm
-                  key: DB_HOST
-            - name: DB_PORT
+                  name: {{ .Values.backend.config.configMapName }}
+                  key: {{ .Values.backend.config.env.DB_HOST.key }}
+
+            - name: {{ .Values.backend.config.DB_PORT}}
               valueFrom:
                 configMapKeyRef:
-                  name: employee-cm
-                  key: DB_PORT
-            - name: DB_USER
+                  name: {{ .Values.backend.config.configMapName }}
+                  key: {{ .Values.backend.config.env.DB_PORT.key }}
+
+            - name: {{ .Values.backend.config.DB_USER}}
               valueFrom:
                 secretKeyRef:
-                  name: mysql-secret
-                  key: MYSQL_USER
-            - name: DB_PASSWORD
+                  name: {{ .Values.backend.config.secretName }}
+                  key: {{ .Values.backend.config.env.DB_USER.key }}
+
+            - name: {{ .Values.backend.config.DB_PASSWORD}}
               valueFrom:
                 secretKeyRef:
-                  name: mysql-secret
-                  key: MYSQL_PASSWORD
-            - name: DB_NAME
+                  name: {{ .Values.backend.config.secretName }}
+                  key: {{ .Values.backend.config.env.DB_PASSWORD.key }}
+                  
+            - name: {{ .Values.backend.config.DB_NAME }}
               valueFrom:
                 secretKeyRef:
-                  name: mysql-secret
-                  key: MYSQL_DATABASE
+                  name: {{ .Values.backend.config.secretName }}
+                  key: {{ .Values.backend.config.env.DB_NAME.key }}
 

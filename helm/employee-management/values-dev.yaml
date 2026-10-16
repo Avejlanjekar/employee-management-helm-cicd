@@ -18,6 +18,5 @@ database:
     repository: avejlanjekar45/employee-management-database
     tag: "fa1ce21e0b70a20ab79bced0b7a3416876ccef77"
 ingress:
-  enabled: true
   className: alb
   host: employee-dev.com

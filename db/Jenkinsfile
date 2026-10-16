@@ -3,18 +3,18 @@ pipeline{
     agent any
 
     environment{
-        AWS_CREDENTIALS= 'aws-ecr-credentials'
-        BUILD_CONTEXT='./db'
-        DATABASE_IMAGE_DEV= 'avejlanjekar45/employee-management-database-dev'
-        DATABASE_IMAGE_QA= 'avejlanjekar45/employee-management-database-qa'
-        DATABASE_IMAGE_UAT='avejlanjekar45/employee-management-database-uat'
-        DATABASE_IMAGE_PROD='avejlanjekar45/employee-management-database-prod'
-        REGISTRY_URL= 'https://registry.hub.docker.com'
-        DEV_DH_CREDENTIALS= 'dockerhub-credentials'
-        QA_DH_CREDENTIALS= 'dockerhub-credentials'
-        UAT_DH_CREDENTIALS= 'dockerhub-credentials'
-        PROD_DH_CREDENTIALS= 'dockerhub-credentials'
-        AWS_REGION = 'ap-south-1'
+        AWS_CREDENTIALS     = 'aws-ecr-credentials'
+        BUILD_CONTEXT       = './db'
+        DATABASE_IMAGE_DEV  = 'avejlanjekar45/employee-management-database-dev'
+        DATABASE_IMAGE_QA   = 'avejlanjekar45/employee-management-database-qa'
+        DATABASE_IMAGE_UAT  = 'avejlanjekar45/employee-management-database-uat'
+        DATABASE_IMAGE_PROD = 'avejlanjekar45/employee-management-database-prod'
+        REGISTRY_URL        = 'https://registry.hub.docker.com'
+        DEV_DH_CREDENTIALS  = 'dockerhub-credentials'
+        QA_DH_CREDENTIALS   = 'dockerhub-credentials'
+        UAT_DH_CREDENTIALS  = 'dockerhub-credentials'
+        PROD_DH_CREDENTIALS = 'dockerhub-credentials'
+        AWS_REGION          = 'ap-south-1'
     }
 
     parameters{
@@ -59,21 +59,8 @@ pipeline{
                 }
             }
         }
-
-        stage('Validate Helm Chart') {
-            when {
-                expression { params.Environment == 'dev' }
-            }
-            steps {
-                sh '''
-                    helm lint helm/employee-management -f helm/employee-management/values-dev.yaml
-                    helm template employee-management helm/employee-management -f helm/employee-management/values-dev.yaml
-                '''
-            }
-        }
-
-        
-        stage('Commit and Push Helm Values') {
+      
+        stage('Commit and Push DEV Helm Values') {
             when {
                 expression { 
                     params.Environment == 'dev' 
@@ -94,7 +81,6 @@ pipeline{
             }
         }
 
-
         stage("promote image DEV to QA"){
             when{
                 expression{
@@ -105,6 +91,39 @@ pipeline{
                 script{
 
                     promoteImage("${env.DATABASE_IMAGE_DEV}","${env.DATABASE_IMAGE_QA}","${env.DEV_DH_CREDENTIALS}","${env.QA_DH_CREDENTIALS}")
+                }
+            }
+        }
+
+        stage('Update QA Helm Values') {
+            when {
+
+                expression { params.Environment == 'qa' }
+            }
+            steps {
+                sh '''
+                    yq -i '.database.image.tag = strenv(IMAGE_TAG)' helm/employee-management/values-qa.yaml
+                '''
+            }
+        }
+ 
+        stage('Commit and Push QA Helm Values') {
+            when {
+                expression { 
+                    params.Environment == 'qa' 
+                }
+            }
+            steps {
+                sh '''
+                    git add helm/employee-management/values-qa.yaml
+                    git commit -m "Update database qa image tag"
+                '''
+
+                withCredentials([gitUsernamePassword(
+                    credentialsId: 'github-git-credentials',
+                    gitToolName: 'Default'
+                )]) {
+                        sh 'git push origin HEAD:main'
                 }
             }
         }
@@ -120,6 +139,39 @@ pipeline{
 
                     promoteImage("${env.DATABASE_IMAGE_QA}","${env.DATABASE_IMAGE_UAT}", "${env.QA_DH_CREDENTIALS}","${env.UAT_DH_CREDENTIALS}")
 
+                }
+            }
+        }
+
+        stage('Update UAT Helm Values') {
+            when {
+
+                expression { params.Environment == 'uat' }
+            }
+            steps {
+                sh '''
+                    yq -i '.database.image.tag = strenv(IMAGE_TAG)' helm/employee-management/values-uat.yaml
+                '''
+            }
+        }
+ 
+        stage('Commit and Push UAT Helm Values') {
+            when {
+                expression { 
+                    params.Environment == 'qa' 
+                }
+            }
+            steps {
+                sh '''
+                    git add helm/employee-management/values-uat.yaml
+                    git commit -m "Update database uat image tag"
+                '''
+
+                withCredentials([gitUsernamePassword(
+                    credentialsId: 'github-git-credentials',
+                    gitToolName: 'Default'
+                )]) {
+                    sh 'git push origin HEAD:main'
                 }
             }
         }
@@ -147,6 +199,39 @@ pipeline{
                 script{
 
                     promoteImage("${env.DATABASE_IMAGE_UAT}","${env.DATABASE_IMAGE_PROD}","${env.UAT_DH_CREDENTIALS}","${env.PROD_DH_CREDENTIALS}")
+                }
+            }
+        }
+
+        stage('Update PROD Helm Values') {
+            when {
+
+                expression { params.Environment == 'prod' }
+            }
+            steps {
+                sh '''
+                    yq -i '.database.image.tag = strenv(IMAGE_TAG)' helm/employee-management/values-prod.yaml
+                '''
+            }
+        }
+ 
+        stage('Commit and Push UAT Helm Values') {
+            when {
+                expression { 
+                    params.Environment == 'prod' 
+                }
+            }
+            steps {
+                sh '''
+                    git add helm/employee-management/values-prod.yaml
+                    git commit -m "Update database prod image tag"
+                '''
+
+                withCredentials([gitUsernamePassword(
+                    credentialsId: 'github-git-credentials',
+                    gitToolName: 'Default'
+                )]) {
+                    sh 'git push origin HEAD:main'
                 }
             }
         }

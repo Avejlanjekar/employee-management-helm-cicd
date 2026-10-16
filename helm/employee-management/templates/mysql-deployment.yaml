@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mysql-deployment
+  name: {{ .Values.database.deployment.name }}
 spec:
   replicas: {{ .Values.database.replicaCount }}
   selector:
     matchLabels:
-      app: mysql
+      app: {{ .Values.database.labels.app }}
   template:
     metadata:
       labels:
-        app: mysql
+        app: {{ .Values.database.labels.app }}
     spec:
       containers:
         - name: {{ .Values.database.containerName }}
@@ -18,23 +18,26 @@ spec:
           ports:
             - containerPort: {{ .Values.database.containerPort }}
           env:
-            - name: MYSQL_ROOT_PASSWORD
+            - name: {{ .Values.database.env.MYSQL_ROOT_PASSWORD.name }}
               valueFrom:
                 secretKeyRef:
-                  name: mysql-secret
-                  key: MYSQL_ROOT_PASSWORD
-            - name: MYSQL_DATABASE
+                  name: {{ .Values.database.env.secretName }}
+                  key: {{ .Values.database.env.MYSQL_ROOT_PASSWORD.key }}
+
+            - name: {{ .Values.database.env.MYSQL_DATABASE.name }}
               valueFrom:
                 secretKeyRef:
-                  name: mysql-secret
-                  key: MYSQL_DATABASE
-            - name: MYSQL_USER
+                  name: {{ .Values.database.env.secretName }}
+                  key: {{ .Values.database.env.MYSQL_DATABASE.key }}
+
+            - name: {{ .Values.database.env.MYSQL_USER.name }}
               valueFrom:
                 secretKeyRef:
-                  name: mysql-secret
-                  key: MYSQL_USER
-            - name: MYSQL_PASSWORD
+                  name: {{ .Values.database.env.secretName }}
+                  key: {{ .Values.database.env.MYSQL_USER.key }}
+
+            - name: {{ .Values.database.env.MYSQL_PASSWORD.name }}
               valueFrom:
                 secretKeyRef:
-                  name: mysql-secret
-                  key: MYSQL_PASSWORD
+                  name: {{ .Values.database.env.secretName }}
+                  key: {{ .Values.database.env.MYSQL_PASSWORD.key }}
