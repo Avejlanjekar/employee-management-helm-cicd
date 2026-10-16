@@ -105,7 +105,7 @@ pipeline{
             }
         }
  
-        stage('Commit and Push DEV Helm Values') {
+        stage('Commit and Push QA Helm Values') {
             when {
                 expression { 
                     params.Environment == 'qa' 
@@ -196,7 +196,7 @@ pipeline{
             }
         }
 
-        stage('Update QA Helm Values') {
+        stage('Update PROD Helm Values') {
             when {
                 expression { params.Environment == 'prod' }
             }
@@ -207,7 +207,7 @@ pipeline{
             }
         }
  
-        stage('Commit and Push DEV Helm Values') {
+        stage('Commit and Push PROD Helm Values') {
             when {
                 expression { 
                     params.Environment == 'prod' 
