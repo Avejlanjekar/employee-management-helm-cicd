@@ -5,6 +5,8 @@ frontend:
   replicaCount: 1
 backend:
   replicaCount: 1
+  image:
+    tag: 7785bd8ddbb87daad9810008b7601440310516ee
 database:
   replicaCount: 1
   image:
