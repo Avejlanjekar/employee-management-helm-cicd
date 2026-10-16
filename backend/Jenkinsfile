@@ -201,7 +201,7 @@ pipeline{
             }
         }
 
-        stage('Update UAt Helm Values') {
+        stage('Update PROD Helm Values') {
             when {
                 expression { params.Environment == 'prod' }
             }
