@@ -106,7 +106,7 @@ pipeline{
             steps{
                 script{
                     withCredentials([
-                        [$class: 'AmazonWebSevicesCredentialsBinding',
+                        [$class: 'AmazonWebServicesCredentialsBinding',
                         credentialsId: "${env.AWS_CREDENTIALS}"]
                     ]){
                         sh "kubectl apply -f argocd/dev/argocd-frontend-dev.yaml"
@@ -182,7 +182,7 @@ pipeline{
             steps{
                 script{
                     withCredentials([
-                        [$class: 'AmazonWebSevicesCredentialsBinding',
+                        [$class: 'AmazonWebServicesCredentialsBinding',
                         credentialsId: "${env.AWS_CREDENTIALS}"]
                     ]){
                         sh "kubectl apply -f argocd/qa/argocd-frontend-qa.yaml"
@@ -259,7 +259,7 @@ pipeline{
             steps{
                 script{
                     withCredentials([
-                        [$class: 'AmazonWebSevicesCredentialsBinding',
+                        [$class: 'AmazonWebServicesCredentialsBinding',
                         credentialsId: "${env.AWS_CREDENTIALS}"]
                     ]){
                         sh "kubectl apply -f argocd/uat/argocd-frontend-uat.yaml"
@@ -348,7 +348,7 @@ pipeline{
             steps{
                 script{ 
                     withCredentials([
-                        [$class: 'AmazonWebSevicesCredentialsBinding',
+                        [$class: 'AmazonWebServicesCredentialsBinding',
                         credentialsId: "${env.AWS_CREDENTIALS}"]
                     ]){
                         sh "kubectl apply -f argocd/prod/argocd-frontend-prod.yaml"
