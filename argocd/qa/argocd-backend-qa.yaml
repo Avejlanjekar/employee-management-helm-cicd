@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: employee-management-dev
+  name: employee-management-backend-qa
   namespace: argocd
 spec:
   project: default
@@ -11,10 +11,13 @@ spec:
     path: helm/employee-management
     helm:
       valueFiles:
-        - values-dev.yaml
+        - values-qa.yaml
+      parameters:
+        - name: component
+          value: backend
   destination:
-    server: https://5464409556A49BBBB95A8D13E25F0345.gr7.ap-south-1.eks.amazonaws.com
-    namespace: employee-dev
+    server: https://C4D0C731063ED074CE90546C04497284.gr7.ap-south-1.eks.amazonaws.com
+    namespace: employee-qa
   syncPolicy:
     automated:
       prune: true
