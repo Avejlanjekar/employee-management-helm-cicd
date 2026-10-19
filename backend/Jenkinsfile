@@ -31,7 +31,7 @@ pipeline{
         )
         choice(
             name: 'REGISTER_ARGOCD_APPLICATION',
-            choices: ["yes","no"],
+            choices: ["no","yes"],
             description: "register argocd application?"
         )
     }
@@ -105,8 +105,13 @@ pipeline{
                 }
             }
             steps{
-                script{                   
-                    sh "kubectl apply -f argocd/dev/argocd-backend-dev.yaml"
+                script{
+                    withCredentials([
+                        [$class: 'AmazonWebSevicesCredentialsBinding',
+                        credentialsId: "${env.AWS_CREDENTIALS}"]
+                    ]){
+                        sh "kubectl apply -f argocd/dev/argocd-backend-dev.yaml"
+                    }                    
                 }
             }
         }
@@ -177,8 +182,14 @@ pipeline{
                 }
             }
             steps{
-                script{                   
-                    sh "kubectl apply -f argocd/qa/argocd-backend-qa.yaml"
+                script{ 
+                    withCredentials([
+                        [$class: 'AmazonWebSevicesCredentialsBinding',
+                        credentialsId: "${env.AWS_CREDENTIALS}"]
+                    ]){
+                        sh "kubectl apply -f argocd/qa/argocd-backend-qa.yaml"
+                    }                  
+                    
                 }
             }
         }
@@ -250,8 +261,13 @@ pipeline{
                 }
             }
             steps{
-                script{                   
-                    sh "kubectl apply -f argocd/uat/argocd-backend-uat.yaml"
+                script{  
+                    withCredentials([
+                        [$class: 'AmazonWebSevicesCredentialsBinding',
+                        credentialsId: "${env.AWS_CREDENTIALS}"]
+                    ]){
+                        sh "kubectl apply -f argocd/uat/argocd-backend-uat.yaml"
+                    }                   
                 }
             }
         }
@@ -334,8 +350,13 @@ pipeline{
                 }
             }
             steps{
-                script{                   
-                    sh "kubectl apply -f argocd/prod/argocd-backend-prod.yaml"
+                script{ 
+                    withCredentials([
+                        [$class: 'AmazonWebSevicesCredentialsBinding',
+                        credentialsId: "${env.AWS_CREDENTIALS}"]
+                    ]){
+                        sh "kubectl apply -f argocd/prod/argocd-backend-prod.yaml"
+                    }                  
                 }
             }
         }
