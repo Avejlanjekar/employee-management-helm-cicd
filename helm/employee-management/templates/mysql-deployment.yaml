@@ -1,3 +1,4 @@
+{{- if or (eq .Values.component "all") (eq .Values.component "database")}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -41,3 +42,4 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.database.env.secretName }}
                   key: {{ .Values.database.env.MYSQL_PASSWORD.key }}
+{{- end}}

@@ -1,3 +1,4 @@
+{{- if or (eq .Values.component "all") (eq .Values.component "backend") }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -47,4 +48,4 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.backend.config.secretName }}
                   key: {{ .Values.backend.config.env.DB_NAME.key }}
-
+{{- end }}

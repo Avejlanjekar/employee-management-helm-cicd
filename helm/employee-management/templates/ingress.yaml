@@ -1,3 +1,4 @@
+{{- if and .Values.ingress.enabled (or (eq .Values.component "all") (eq .Values.component "config"))}}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -18,3 +19,4 @@ spec:
                 name: frontend-service
                 port:
                   number: {{ .Values.frontend.service.port }}
+{{- end}}

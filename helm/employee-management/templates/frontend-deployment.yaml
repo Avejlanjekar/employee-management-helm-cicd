@@ -1,3 +1,4 @@
+{{- if or (eq .Values.component "all") (eq .Values.component "frontend") }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -17,3 +18,4 @@ spec:
           image: "{{ .Values.frontend.image.repository }}-{{ .Values.global.environment }}:{{ .Values.frontend.image.tag }}"
           ports:
             - containerPort: {{ .Values.frontend.containerPort }}
+{{- end }}
