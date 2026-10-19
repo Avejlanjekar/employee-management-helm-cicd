@@ -3,19 +3,18 @@ pipeline{
     agent any
 
     environment{
-
-        AWS_CREDENTIALS= 'aws-ecr-credentials'
-        BUILD_CONTEXT='./frontend'
-        FRONTEND_IMAGE_DEV= 'avejlanjekar45/employee-management-frontend-dev'
-        FRONTEND_IMAGE_QA= 'avejlanjekar45/employee-management-frontend-qa'
-        FRONTEND_IMAGE_UAT= 'avejlanjekar45/employee-management-frontend-uat'
-        FRONTEND_IMAGE_PROD='avejlanjekar45/employee-management-frontend-prod'
-        REGISTRY_URL= 'https://registry.hub.docker.com'
-        DEV_DH_CREDENTIALS= 'dockerhub-credentials'
-        QA_DH_CREDENTIALS= 'dockerhub-credentials'
-        UAT_DH_CREDENTIALS= 'dockerhub-credentials'
-        PROD_DH_CREDENTIALS= 'dockerhub-credentials'
-        AWS_REGION = 'ap-south-1'
+        AWS_CREDENTIALS     = 'aws-ecr-credentials'
+        BUILD_CONTEXT       = './frontend'
+        FRONTEND_IMAGE_DEV  = 'avejlanjekar45/employee-management-frontend-dev'
+        FRONTEND_IMAGE_QA   = 'avejlanjekar45/employee-management-frontend-qa'
+        FRONTEND_IMAGE_UAT  = 'avejlanjekar45/employee-management-frontend-uat'
+        FRONTEND_IMAGE_PROD = 'avejlanjekar45/employee-management-frontend-prod'
+        REGISTRY_URL        = 'https://registry.hub.docker.com'
+        DEV_DH_CREDENTIALS  = 'dockerhub-credentials'
+        QA_DH_CREDENTIALS   = 'dockerhub-credentials'
+        UAT_DH_CREDENTIALS  = 'dockerhub-credentials'
+        PROD_DH_CREDENTIALS = 'dockerhub-credentials'
+        AWS_REGION          = 'ap-south-1'
     }
 
     parameters{
@@ -24,11 +23,15 @@ pipeline{
             choices: ["dev","qa","uat","prod"],
             description: "Select deployment environment"
         )
-
         string(
             name: 'IMAGE_TAG',
             defaultValue: '',
             description: 'provide commit id'
+        )
+        choice(
+            name: 'REGISTER_ARGOCD_APPLICATION',
+            choices: ["yes","no"],
+            description: "register argocd application?"
         )
     }
 
@@ -68,8 +71,16 @@ pipeline{
             }
             steps {
                 sh '''
+                    git config user.name "Avej Lanjekar"
+                    git config user.email "avejlanjekar@gmail.com"
+
                     git add helm/employee-management/values-dev.yaml
-                    git commit -m "Update frontend Dev image tag"
+
+                    if ! git diff --cached --quiet; then
+                        git commit -m "Update frontend DEV image tag"
+                    else
+                        echo "No changes in DEV Helm values. Skipping commit."
+                    fi
                 '''
 
                 withCredentials([gitUsernamePassword(
@@ -77,6 +88,24 @@ pipeline{
                     gitToolName: 'Default'
                 )]) {
                         sh 'git push origin HEAD:main'
+                }
+            }
+        }
+
+        stage('Register DEV Argocd Application'){
+            when {
+                allOf {
+                    expression {
+                        params.Environment == 'dev' 
+                    }
+                    expression {
+                        params.REGISTER_ARGOCD_APPLICATION == 'yes' 
+                    }
+                }
+            }
+            steps{
+                script{                   
+                    sh "kubectl apply -f argocd/dev/argocd-frontend-dev.yaml"
                 }
             }
         }
@@ -113,8 +142,16 @@ pipeline{
             }
             steps {
                 sh '''
+                    git config user.name "Avej Lanjekar"
+                    git config user.email "avejlanjekar@gmail.com"
+
                     git add helm/employee-management/values-qa.yaml
-                    git commit -m "Update frontend qa image tag"
+
+                    if ! git diff --cached --quiet; then
+                        git commit -m "Update frontend QA image tag"
+                    else
+                        echo "No changes in QA Helm values. Skipping commit."
+                    fi
                 '''
 
                 withCredentials([gitUsernamePassword(
@@ -122,6 +159,24 @@ pipeline{
                     gitToolName: 'Default'
                 )]) {
                         sh 'git push origin HEAD:main'
+                }
+            }
+        }
+
+        stage('Register QA Argocd Application'){
+            when {
+                allOf {
+                    expression {
+                        params.Environment == 'qa' 
+                    }
+                    expression {
+                        params.REGISTER_ARGOCD_APPLICATION == 'yes' 
+                    }
+                }
+            }
+            steps{
+                script{                   
+                    sh "kubectl apply -f argocd/qa/argocd-frontend-qa.yaml"
                 }
             }
         }
@@ -158,8 +213,17 @@ pipeline{
             }
             steps {
                 sh '''
+                    git config user.name "Avej Lanjekar"
+                    git config user.email "avejlanjekar@gmail.com"
+
                     git add helm/employee-management/values-uat.yaml
-                    git commit -m "Update frontend uat image tag"
+
+                    if ! git diff --cached --quiet; then
+                        git commit -m "Update frontend UAT image tag"
+                    else
+                        echo "No changes in Uat Helm values. Skipping commit."
+                    fi
+                
                 '''
 
                 withCredentials([gitUsernamePassword(
@@ -167,6 +231,24 @@ pipeline{
                     gitToolName: 'Default'
                 )]) {
                         sh 'git push origin HEAD:main'
+                }
+            }
+        }
+
+        stage('Register UAT Argocd Application'){
+            when {
+                allOf {
+                    expression {
+                        params.Environment == 'uat' 
+                    }
+                    expression {
+                        params.REGISTER_ARGOCD_APPLICATION == 'yes' 
+                    }
+                }
+            }
+            steps{
+                script{                   
+                    sh "kubectl apply -f argocd/uat/argocd-frontend-uat.yaml"
                 }
             }
         }
@@ -215,8 +297,17 @@ pipeline{
             }
             steps {
                 sh '''
+                    git config user.name "Avej Lanjekar"
+                    git config user.email "avejlanjekar@gmail.com"
+
                     git add helm/employee-management/values-prod.yaml
-                    git commit -m "Update frontend prod image tag"
+
+                    if ! git diff --cached --quiet; then
+                        git commit -m "Update frontend PROD image tag"
+                    else
+                        echo "No changes in PROD Helm values. Skipping commit."
+                    fi
+                
                 '''
 
                 withCredentials([gitUsernamePassword(
@@ -224,6 +315,24 @@ pipeline{
                     gitToolName: 'Default'
                 )]) {
                         sh 'git push origin HEAD:main'
+                }
+            }
+        }
+
+        stage('Register PROD Argocd Application'){
+            when {
+                allOf {
+                    expression {
+                        params.Environment == 'prod' 
+                    }
+                    expression {
+                        params.REGISTER_ARGOCD_APPLICATION == 'yes' 
+                    }
+                }
+            }
+            steps{
+                script{                   
+                    sh "kubectl apply -f argocd/prod/argocd-frontend-prod.yaml"
                 }
             }
         }

@@ -29,6 +29,11 @@ pipeline{
             defaultValue: '',
             description: 'provide commit id'
         )
+        choice(
+            name: 'REGISTER_ARGOCD_APPLICATION',
+            choices: ["yes","no"],
+            description: "register argocd application?"
+        )
     }
 
     stages{
@@ -68,8 +73,16 @@ pipeline{
             }
             steps {
                 sh '''
+                    git config user.name "Avej Lanjekar"
+                    git config user.email "avejlanjekar@gmail.com"
+
                     git add helm/employee-management/values-dev.yaml
-                    git commit -m "Update database Dev image tag"
+
+                    if ! git diff --cached --quiet; then
+                        git commit -m "Update database Dev image tag"
+                    else
+                        echo "No changes in DEV Helm values. Skipping commit."
+                    fi
                 '''
 
                 withCredentials([gitUsernamePassword(
@@ -77,6 +90,25 @@ pipeline{
                     gitToolName: 'Default'
                 )]) {
                         sh 'git push origin HEAD:main'
+                }
+            }
+        }
+
+        stage('Register DEV Argocd Application'){
+            when{
+                allOf{
+                    expression{
+                        params.Environment == "dev"
+                    }
+                    expression{
+                        params.REGISTER_ARGOCD_APPLICATION == "yes"
+                    }
+                }
+            }
+            steps{
+                script{
+                    sh "kubectl apply -f argocd/dev/argocd-config-dev.yaml"
+                    sh "kubectl apply -f argocd/dev/argocd-database-dev.yaml"
                 }
             }
         }
@@ -115,8 +147,16 @@ pipeline{
             }
             steps {
                 sh '''
+                    git config user.name "Avej Lanjekar"
+                    git config user.email "avejlanjekar@gmail.com"
+
                     git add helm/employee-management/values-qa.yaml
-                    git commit -m "Update database qa image tag"
+
+                    if ! git diff --cached --quiet; then
+                        git commit -m "Update database qa image tag"
+                    else
+                        echo "No changes in QA Helm values. Skipping commit."
+                    fi
                 '''
 
                 withCredentials([gitUsernamePassword(
@@ -124,6 +164,25 @@ pipeline{
                     gitToolName: 'Default'
                 )]) {
                         sh 'git push origin HEAD:main'
+                }
+            }
+        }
+
+        stage('Register QA Argocd Application'){
+            when {
+                allOf {
+                    expression {
+                        params.Environment == 'qa' 
+                    }
+                    expression {
+                        params.REGISTER_ARGOCD_APPLICATION == 'yes' 
+                    }
+                }
+            }
+            steps{
+                script{
+                    sh "kubectl apply -f argocd/qa/argocd-config-qa.yaml"
+                    sh "kubectl apply -f argocd/qa/argocd-database-qa.yaml"
                 }
             }
         }
@@ -163,8 +222,17 @@ pipeline{
             }
             steps {
                 sh '''
+
+                    git config user.name "Avej Lanjekar"
+                    git config user.email "avejlanjekar@gmail.com"
+
                     git add helm/employee-management/values-uat.yaml
-                    git commit -m "Update database uat image tag"
+
+                    if ! git diff --cached --quiet; then
+                        git commit -m "Update database uat image tag"
+                    else
+                        echo "No changes in UAT Helm values. Skipping commit."
+                    fi
                 '''
 
                 withCredentials([gitUsernamePassword(
@@ -172,6 +240,25 @@ pipeline{
                     gitToolName: 'Default'
                 )]) {
                     sh 'git push origin HEAD:main'
+                }
+            }
+        }
+
+        stage('Register UAT Argocd Application'){
+            when {
+                allOf {
+                    expression {
+                        params.Environment == 'uat' 
+                    }
+                    expression {
+                        params.REGISTER_ARGOCD_APPLICATION == 'yes' 
+                    }
+                }
+            }
+            steps{
+                script{
+                    sh "kubectl apply -f argocd/uat/argocd-config-uat.yaml"
+                    sh "kubectl apply -f argocd/uat/argocd-database-uat.yaml"
                 }
             }
         }
@@ -188,7 +275,6 @@ pipeline{
             }
         }
         
-
         stage("Promote image from UAT to PROD"){
             when{
                 expression{
@@ -223,8 +309,16 @@ pipeline{
             }
             steps {
                 sh '''
+                    git config user.name "Avej Lanjekar"
+                    git config user.email "avejlanjekar@gmail.com"
+
                     git add helm/employee-management/values-prod.yaml
-                    git commit -m "Update database prod image tag"
+
+                    if ! git diff --cached --quiet; then
+                        git commit -m "Update database prod image tag"
+                    else
+                        echo "No changes in PROD Helm values. Skipping commit."
+                    fi
                 '''
 
                 withCredentials([gitUsernamePassword(
@@ -232,6 +326,25 @@ pipeline{
                     gitToolName: 'Default'
                 )]) {
                     sh 'git push origin HEAD:main'
+                }
+            }
+        }
+
+        stage('Register PROD Argocd Application'){
+            when {
+                allOf {
+                    expression {
+                        params.Environment == 'prod' 
+                    }
+                    expression {
+                        params.REGISTER_ARGOCD_APPLICATION == 'yes' 
+                    }
+                }
+            }
+            steps{
+                script{                   
+                    sh "kubectl apply -f argocd/prod/argocd-config-prod.yaml"
+                    sh "kubectl apply -f argocd/prod/argocd-database-prod.yaml"
                 }
             }
         }
