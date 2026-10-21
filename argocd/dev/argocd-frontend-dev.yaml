@@ -16,7 +16,7 @@ spec:
         - name: component
           value: frontend
   destination:
-    server: arn:aws:eks:ap-south-1:916921211430:cluster/employee-management-eks-dev
+    server: https://54CC3ED28874F48406409F68D03B1EC0.gr7.ap-south-1.eks.amazonaws.com
     namespace: employee-dev
   syncPolicy:
     automated:
