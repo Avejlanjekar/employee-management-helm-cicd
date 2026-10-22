@@ -6,7 +6,7 @@ frontend:
   replicaCount: 1
   image:
     repository: avejlanjekar45/employee-management-frontend
-    tag: "1ef1a91242fe2d24c21efa9b23dd984b37adadcd"
+    tag: "8dfe3d80e5ba8c6070c70612b7e28f1bc18e8e2c"
 backend:
   replicaCount: 1
   image:
