@@ -16,7 +16,7 @@ database:
   replicaCount: 1
   image:
     repository: avejlanjekar45/employee-management-database
-    tag: "f1b6258cc6065847400c6e2a36c500702d938a36"
+    tag: "1cf873e43a7983120b89973a11c582e6736e41e2"
 ingress:
   enabled: true
   className: alb
