@@ -34,6 +34,11 @@ pipeline{
             choices: ["no","yes"],
             description: "register argocd application?"
         )
+        choice(
+            name: 'DELETE_ARGOCD_APPLICATION',
+            choices: ["no","yes"],
+            description: "delete argocd application?"
+        )
     }
 
     stages{
@@ -115,6 +120,32 @@ pipeline{
                         sh "aws eks update-kubeconfig --name employee-management-eks-dev --region ap-south-1"
                         sh "kubectl apply -f argocd/dev/argocd-config-dev.yaml"
                         sh "kubectl apply -f argocd/dev/argocd-database-dev.yaml"
+                    }
+                }
+            }
+        }
+
+        stage('Delete DEV Argocd Application'){
+            when{
+                allOf{
+                    expression{
+                        params.Environment == "dev"
+                    }
+                    expression{
+                        params.DELETE_ARGOCD_APPLICATION == "yes"
+                    }
+                }
+            }
+            steps{
+                script{
+                    withCredentials([
+                        [$class: 'AmazonWebServicesCredentialsBinding',
+                        credentialsId: "${env.AWS_CREDENTIALS}"]
+                    ]){
+                        sh 'aws sts get-caller-identity'
+                        sh "aws eks update-kubeconfig --name employee-management-eks-dev --region ap-south-1"
+                        sh "kubectl delete -f argocd/dev/argocd-config-dev.yaml"
+                        sh "kubectl delete -f argocd/dev/argocd-database-dev.yaml"
                     }
                 }
             }
@@ -202,6 +233,33 @@ pipeline{
             }
         }
 
+        stage('Delete QA Argocd Application'){
+            when {
+                allOf {
+                    expression {
+                        params.Environment == 'qa' 
+                    }
+                    expression {
+                        params.DELETE_ARGOCD_APPLICATION == 'yes' 
+                    }
+                }
+            }
+            steps{
+                script{
+                    withCredentials([
+                        [$class: 'AmazonWebServicesCredentialsBinding',
+                        credentialsId: "${env.AWS_CREDENTIALS}"]
+                    ]){
+                        sh 'aws sts get-caller-identity'
+                        sh "aws eks update-kubeconfig --name employee-management-eks-dev --region ap-south-1"
+
+                        sh "kubectl delete -f argocd/qa/argocd-config-qa.yaml"
+                        sh "kubectl delete -f argocd/qa/argocd-database-qa.yaml"
+                    }
+                }
+            }
+        }
+
         stage("promote image QA to UAT"){
             when {
                 expression{
@@ -280,6 +338,32 @@ pipeline{
                         sh "aws eks update-kubeconfig --name employee-management-eks-dev --region ap-south-1"
                         sh "kubectl apply -f argocd/uat/argocd-config-uat.yaml"
                         sh "kubectl apply -f argocd/uat/argocd-database-uat.yaml"
+                    }
+                }
+            }
+        }
+
+        stage('Delete UAT Argocd Application'){
+            when {
+                allOf {
+                    expression {
+                        params.Environment == 'uat' 
+                    }
+                    expression {
+                        params.DELETE_ARGOCD_APPLICATION == 'yes' 
+                    }
+                }
+            }
+            steps{
+                script{
+                    withCredentials([
+                        [$class: 'AmazonWebServicesCredentialsBinding',
+                        credentialsId: "${env.AWS_CREDENTIALS}"]
+                    ]){
+                        sh 'aws sts get-caller-identity'
+                        sh "aws eks update-kubeconfig --name employee-management-eks-dev --region ap-south-1"
+                        sh "kubectl delete -f argocd/uat/argocd-config-uat.yaml"
+                        sh "kubectl delete -f argocd/uat/argocd-database-uat.yaml"
                     }
                 }
             }
@@ -373,6 +457,32 @@ pipeline{
                         sh "aws eks update-kubeconfig --name employee-management-eks-dev --region ap-south-1"
                         sh "kubectl apply -f argocd/prod/argocd-config-prod.yaml"
                         sh "kubectl apply -f argocd/prod/argocd-database-prod.yaml"
+                    }
+                }
+            }
+        }
+
+        stage('Delete PROD Argocd Application'){
+            when {
+                allOf {
+                    expression {
+                        params.Environment == 'prod' 
+                    }
+                    expression {
+                        params.DELETE_ARGOCD_APPLICATION == 'yes' 
+                    }
+                }
+            }
+            steps{
+                script{
+                    withCredentials([
+                        [$class: 'AmazonWebServicesCredentialsBinding',
+                        credentialsId: "${env.AWS_CREDENTIALS}"]
+                    ]){
+                        sh 'aws sts get-caller-identity'
+                        sh "aws eks update-kubeconfig --name employee-management-eks-dev --region ap-south-1"
+                        sh "kubectl delete -f argocd/prod/argocd-config-prod.yaml"
+                        sh "kubectl delete -f argocd/prod/argocd-database-prod.yaml"
                     }
                 }
             }
