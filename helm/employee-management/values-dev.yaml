@@ -11,7 +11,7 @@ backend:
   replicaCount: 1
   image:
     repository: avejlanjekar45/employee-management-backend
-    tag: "5f18a8dd05072b2ae1a91d59e9211862ff2204e6"
+    tag: "190884162a61e342f031f3bab187bb6f9020448b"
 database:
   replicaCount: 1
   image:
