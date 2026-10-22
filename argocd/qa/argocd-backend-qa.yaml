@@ -16,7 +16,7 @@ spec:
         - name: component
           value: backend
   destination:
-    server: https://B425B9BB676CC52478A91ED51A66E46C.gr7.ap-south-1.eks.amazonaws.com
+    server: https://2BC343F5A09A1D443E9FBD04754CF72B.gr7.ap-south-1.eks.amazonaws.com
     namespace: employee-qa
   syncPolicy:
     automated:
